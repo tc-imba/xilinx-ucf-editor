@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<style>
+    td {
+        text-align: center;
+    }
+</style>
+<body>
+
+
+<h5>Please select a sch file: <input type="file" name="file" onchange="readFile(this)"/></h5>
+<div id="display"></div>
+<br/>
+<textarea id="ucf" cols="50" rows="20" style="display: none"></textarea>
+
+<script type="text/javascript">
+
+    function generateUCF() {
+        var ports = document.getElementsByClassName('ucf-port');
+        //console.log(ports.length);
+        var html = '';
+        for (var i = 0; i < ports.length; i++) {
+            html += 'NET "' + ports[i].name + '"  LOC = "' + ports[i].value + '"  ;\n';
+            //console.log(ports[i].name, ports[i].value);
+        }
+        var ucf = document.getElementById('ucf');
+        ucf.value = html;
+        ucf.style.display = 'block';
+    }
+
+    function processSCHFile(str) {
+        var ports = str.match(/PORT\s+(Input|Output)\s+\S+/g);
+        var html = '<table width="400">';
+        html += '<tr><th>TYPE</th><th>NAME</th><th>PORT</th></tr>';
+        var type, name;
+        for (var i in ports) {
+            var a = ports[i].match(/PORT\s+Input\s+/);
+            if (a) {
+                type = 'Input';
+            } else {
+                a = ports[i].match(/PORT\s+Output\s+/);
+                type = 'Output';
+            }
+            name = ports[i].substring(a[0].length);
+            //console.log(a);
+            html += '<tr><td>' + type + '</td><td>' + name + '</td><td><input class="ucf-port" name="' + name + '" type="text"/></td><tr/>';
+        }
+        html += '</table><button onclick="generateUCF()">Generate UCF File</button>';
+        document.getElementById('display').innerHTML = html;
+    }
+
+    function readFile(source) {
+        var file = source.files[0];
+        if (!file) return;
+        //console.log(source.files[0]);
+        if (window.FileReader) {
+            var fr = new FileReader();
+            fr.onloadend = function (e) {
+                processSCHFile(e.target.result);
+            };
+            fr.readAsText(file);
+        }
+    }
+
+</script>
+
+</body>
+</html>
